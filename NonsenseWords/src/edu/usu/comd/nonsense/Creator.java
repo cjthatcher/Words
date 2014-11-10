@@ -9,8 +9,6 @@ import java.util.stream.IntStream;
 
 public class Creator {
 				
-	
-	
 	/*
 	 * Gameplan:
 	 * 
@@ -31,7 +29,14 @@ public class Creator {
 	
 	public static void main(String[] args)
 	{
-		List<Word> wordList = createList(Arrays.asList(Letter.BLEND, Letter.VOWEL, Letter.BLEND, Letter.VOWEL, Letter.CONSONANT, Letter.VOWEL), 10);
+		List<Word> wordList = createList(Arrays.asList(new Letter(Glyph.makeGlyphList("a","e","i"), 1), new Letter(Glyph.makeGlyphList("v"), 0)), 4);
+		System.out.println(wordList.size());
+		for (Word s : wordList)
+		{
+			System.out.println(s.getString());
+		}
+		
+		wordList = createList(Arrays.asList(new Letter(Glyph.makeGlyphList("v"), 0), new Letter(Glyph.makeGlyphList("a","e","i"), 1)), 4);
 		System.out.println(wordList.size());
 		for (Word s : wordList)
 		{
