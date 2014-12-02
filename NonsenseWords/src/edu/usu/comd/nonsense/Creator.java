@@ -9,29 +9,24 @@ import java.util.stream.IntStream;
 
 public class Creator {
 				
-	
-	
 	/*
-	 * Gameplan:
+	 * 0) Make sure lists don't have duplicates right next to each other.
 	 * 
-	 * 0) Make sure random letters are coming back random
+	 * 1) Persist the list of PhonemeLists to a map on file. 
 	 * 
-	 * 1) Flesh out blends
-	 * 
-	 * 2) Flesh out custom Letter types
-	 * 
-	 * 3) Add checks for valid word types -- CCCCVC doesn't fly.
-	 * 
-	 * 3) Add file output support for Kate
-	 * 
-	 * 4) Wrap it in a GUI for easy creation and testing
-	 * 
-	 * 5) Add in reporting --> Click each glpyh to see if it was good / bad. Keep Score. Show ALL glyphs and % of accuracy
+	 * 2) 
 	 */
 	
 	public static void main(String[] args)
 	{
-		List<Word> wordList = createList(Arrays.asList(Letter.BLEND, Letter.VOWEL, Letter.BLEND, Letter.VOWEL, Letter.CONSONANT, Letter.VOWEL), 10);
+		List<Word> wordList = createList(Arrays.asList(new Phoneme(Arrays.asList(new String[]{"a","e","i"}), 1, "subvowel"), new Phoneme(Arrays.asList(new String[]{"v"}), 0, "v")), 4);
+		System.out.println(wordList.size());
+		for (Word s : wordList)
+		{
+			System.out.println(s.getString());
+		}
+		
+		wordList = createList(Arrays.asList(new Phoneme(Arrays.asList(new String[]{"v"}), 0, "v"), new Phoneme(Arrays.asList(new String[]{"a","e","i"}), 1, "subvowel")), 4);
 		System.out.println(wordList.size());
 		for (Word s : wordList)
 		{
@@ -39,19 +34,14 @@ public class Creator {
 		}
 	}
 	
-	private static List<Word> createList(List<Letter> letters, int numberToPractice)
-	{
-		
-		//New game plan:
-		// Screw first time / last time
-		// Generate list of empty Strings. Expensive. Could be char arrays. Of correct length. That.
-		
-		Letter mostImportantLetter = findMostImportantLetter(letters);
+	private static List<Word> createList(List<Phoneme> letters, int numberToPractice)
+	{	
+		Phoneme mostImportantLetter = findMostImportantLetter(letters);
 		int numberOfResults = findNumberOfResults(mostImportantLetter, numberToPractice);
 		List<Word> wordList = new ArrayList<Word>(numberOfResults);
 		IntStream.range(0, numberOfResults).forEach(i -> wordList.add(new Word()));
 		
-		for (Letter l : letters)
+		for (Phoneme l : letters)
 		{
 			if (l.equals(mostImportantLetter))
 			{
@@ -67,17 +57,29 @@ public class Creator {
 		}
 		
 		return wordList.stream()
-				.filter(w -> w.getGlyph(0).getChars()[0] != 'x')
+				.filter(w -> w.getGlyph(0).charAt(0) != 'x')
 				.filter(w -> Blacklist.blackList.contains(w) == false)
 				.collect(Collectors.toList());
 	}
 	
-	private static Letter findMostImportantLetter(List<Letter> letters)
+	public static String createOutputString(List<Phoneme> letters, int numberToPractice)
 	{
-		return letters.stream().max(Letter.comparator).get();
+		List<Word> wordList = createList(letters, numberToPractice);
+		StringBuilder sb = new StringBuilder();
+		for (Word w : wordList)
+		{
+			sb.append(w.getString());
+			sb.append("\n");
+		}
+		return sb.toString();
 	}
 	
-	private static int findNumberOfResults(Letter letter, int numberToPractice)
+	private static Phoneme findMostImportantLetter(List<Phoneme> letters)
+	{
+		return letters.stream().max(Phoneme.comparator).get();
+	}
+	
+	private static int findNumberOfResults(Phoneme letter, int numberToPractice)
 	{
 		return letter.getPossibilities().size() * numberToPractice;
 	}

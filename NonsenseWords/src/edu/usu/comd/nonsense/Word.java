@@ -5,33 +5,31 @@ import java.util.List;
 
 public class Word {
 	
-	private List<Glyph> glyphList;
+	private List<String> glyphList;
 	
 	public Word() {
-		glyphList = new ArrayList<Glyph>();
+		glyphList = new ArrayList<String>();
 	}
 	
-	public Word(List<Glyph> glyphList)
+	public Word(List<String> glyphList)
 	{
 		this.glyphList = glyphList;
 	}
 	
-	public void addGlyph(Glyph g)
+	public void addGlyph(String g)
 	{
 		glyphList.add(g);
 	}
 
 	public String getString() {
 		StringBuilder sb = new StringBuilder();
-		glyphList.stream().forEach(g -> sb.append(g.getChars()));
+		glyphList.stream().forEach(g -> sb.append(g));
 		return sb.toString();
 	}
 	
-	public Glyph getGlyph(int i)
+	public String getGlyph(int i)
 	{
 		return glyphList.get(i);
 	}
 	
-	
-
 }

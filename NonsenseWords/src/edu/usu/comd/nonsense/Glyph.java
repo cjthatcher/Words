@@ -2,8 +2,8 @@ package edu.usu.comd.nonsense;
 
 import java.util.ArrayList;
 import java.util.List;
-
 public class Glyph {
+
 	
 	private char[] chars;
 	
