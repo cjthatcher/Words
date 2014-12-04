@@ -68,5 +68,18 @@
       "u"
     ],
     "priority": 0
+  },
+  {
+    "name": "Steve+",
+    "possibilities": [
+      "Poop",
+      "asdf",
+      "fdsaf",
+      "Arch",
+      "Mage",
+      "Whatever",
+      "Nicely."
+    ],
+    "priority": 1
   }
 ]

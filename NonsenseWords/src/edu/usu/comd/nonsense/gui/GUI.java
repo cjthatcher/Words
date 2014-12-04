@@ -5,12 +5,14 @@ import java.util.List;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -32,23 +34,35 @@ public class GUI extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		
-		List<Phoneme> phonemeList = Utils.readPhonemeList();
+		Label pListViewLabel = new Label("Avaiable Phonemes");
+		List<Phoneme> phonemeList = Utils.getPhonemeList();
 		phonemeListView = new ListView<Phoneme>();
 		ObservableList<Phoneme> items = FXCollections.observableArrayList(phonemeList);
 		phonemeListView.setItems(items);
 		phonemeListView.setCellFactory(phonemeCellFactory);
-		phonemeListView.getSelectionModel().selectedItemProperty().addListener((o, o1, o2) -> addPhonemeButton.setText("Add " + o2.getName()));
+		phonemeListView.setPrefHeight(150);
 		
+		
+		Label wListViewLabel = new Label("The Word You're Building:");
 		wordBuilderList = new ListView<Phoneme>();
-		wordBuilderList.setOrientation(Orientation.HORIZONTAL);
 		wordBuilderList.setCellFactory(phonemeCellFactory);
+		wordBuilderList.setPrefHeight(200);
 
 		
 		BorderPane root = new BorderPane();
 		VBox vbox = new VBox();
 		addPhonemeButton = new Button();
-		addPhonemeButton.setText("Add Phoneme");
-		addPhonemeButton.setOnAction(e -> wordBuilderList.getItems().add(wordBuilderList.getSelectionModel().isEmpty() ? wordBuilderList.getItems().size() : wordBuilderList.getSelectionModel().getSelectedIndex() + 1, phonemeListView.getSelectionModel().getSelectedItem()));
+		addPhonemeButton.setText("Insert Phoneme");
+		addPhonemeButton.setOnAction(e -> doAddPhonemeToList());
+
+		Button editPhonemeButton = new Button("Edit Phoneme");
+		editPhonemeButton.setOnAction(e -> doEditPhoneme(phonemeListView, primaryStage));
+		
+		Button createPhonemeButton = new Button("Create New Phoneme");
+		createPhonemeButton.setOnAction(e -> doCreatePhoneme(phonemeListView, primaryStage));
+		
+		Button deletePhonemeButton = new Button("Delete Phoneme");
+		deletePhonemeButton.setOnAction(e -> doDeletePhoneme(phonemeListView));
 		
 		removePhonemeButton = new Button("Remove Phoneme");
 		removePhonemeButton.setOnAction(e -> wordBuilderList.getItems().remove(wordBuilderList.getSelectionModel().getSelectedIndex()));
@@ -62,12 +76,56 @@ public class GUI extends Application {
 		HBox hbox = new HBox();
 		hbox.getChildren().addAll(addPhonemeButton, removePhonemeButton, createWordListButton);
 
-		vbox.getChildren().add(hbox);
-		vbox.getChildren().add(phonemeListView);
-		vbox.getChildren().add(wordBuilderList);
+		Label availablePhonemesLabel = new Label("Available Phonemes:");
+		HBox phonemeBox = new HBox();
+		phonemeBox.getChildren().add(phonemeListView);
+		VBox phonemeButtonBox = new VBox();
+		phonemeButtonBox.getChildren().add(addPhonemeButton);
+		phonemeButtonBox.getChildren().add(editPhonemeButton);
+		phonemeButtonBox.getChildren().add(createPhonemeButton);
+		phonemeButtonBox.getChildren().add(deletePhonemeButton);
+		phonemeBox.getChildren().add(phonemeButtonBox);
+		
+		vbox.getChildren().add(availablePhonemesLabel);
+		vbox.getChildren().add(phonemeBox);
+		
+		Label wordBoxLabel = new Label("Word You're Building");
+		HBox wordBox = new HBox();
+		wordBox.getChildren().add(wordBuilderList);
+		VBox wordButtonBox = new VBox();
+		
+		Button markAsTopPriority = new Button("Mark as top priority");
+		markAsTopPriority.setTooltip(new Tooltip("Ensures the selected phoneme\nwill appear at least the number of times you specify.\nOther phonemes may appear fewer times."));
+		markAsTopPriority.setOnAction(e -> doSetOnTopPriorityAction(wordBuilderList));
+		
+		Button moveUp = new Button("Move up");
+		moveUp.setOnAction(e -> moveUpAction(wordBuilderList));
+		
+		Button moveDown = new Button("Move down");
+		moveDown.setOnAction(e -> moveDownAction(wordBuilderList));
+		
+		Label numberToTestLabel = new Label("Words per phoneme:");
+		TextField numberTextField = new TextField("4");
+		
+		Button run = new Button("Run");
+		run.setOnAction(e -> doRunAction(wordBuilderList, numberTextField));
+		
+		wordButtonBox.getChildren().add(removePhonemeButton);
+		wordButtonBox.getChildren().add(markAsTopPriority);
+		wordButtonBox.getChildren().add(moveUp);
+		wordButtonBox.getChildren().add(moveDown);
+		wordButtonBox.getChildren().add(numberToTestLabel);
+		wordButtonBox.getChildren().add(numberTextField);
+		wordButtonBox.getChildren().add(run);
+		
+		wordBox.getChildren().add(wordButtonBox);
+		
+		vbox.getChildren().add(wordBoxLabel);
+		vbox.getChildren().add(wordBox);
+
 		vbox.getChildren().add(output);
 		root.setCenter(vbox);
-		Scene scene = new Scene(root, 300,800);
+		Scene scene = new Scene(root, 450,800);
 		
 		primaryStage.setTitle("Titlezorz");
 		primaryStage.setScene(scene);
@@ -75,6 +133,81 @@ public class GUI extends Application {
 		
 	}
 	
+	private Object doDeletePhoneme(ListView<Phoneme> phonemeListView2) {
+		Phoneme p = phonemeListView2.getSelectionModel().getSelectedItem();
+		if (p != null)
+		{
+			Utils.removePhoneme(p);
+			phonemeListView2.getItems().remove(p);
+		}
+		return null;
+	}
+
+	private Object moveDownAction(ListView<Phoneme> wordBuilderList2) {
+		Phoneme phonemeToMove = wordBuilderList2.getSelectionModel().getSelectedItem();
+		int newPlace = wordBuilderList2.getSelectionModel().getSelectedIndex();
+		newPlace = newPlace < wordBuilderList2.getItems().size() - 1 ? newPlace + 1 : newPlace;
+		
+		wordBuilderList2.getItems().remove(phonemeToMove);
+		wordBuilderList2.getItems().add(newPlace, phonemeToMove);
+		wordBuilderList2.getSelectionModel().select(newPlace);
+		return null;
+	}
+
+	private Object moveUpAction(ListView<Phoneme> wordBuilderList2) {
+		Phoneme phonemeToMove = wordBuilderList2.getSelectionModel().getSelectedItem();
+		int newPlace = wordBuilderList2.getSelectionModel().getSelectedIndex();
+		newPlace = newPlace > 0 ? newPlace -1 : 0;
+		
+		wordBuilderList2.getItems().remove(phonemeToMove);
+		wordBuilderList2.getItems().add(newPlace, phonemeToMove);
+		wordBuilderList2.getSelectionModel().select(newPlace);
+		return null;
+	}
+
+	private Object doAddPhonemeToList() {
+		Phoneme phonemeToAdd = phonemeListView.getSelectionModel().getSelectedItem().clone();
+		wordBuilderList.getItems().add(phonemeToAdd);
+		return null;
+	}
+
+	private Object doRunAction(ListView<Phoneme> wordBuilderList2, TextField numberField) {
+		int numToRun = 4;
+		try {
+			numToRun = Integer.parseInt(numberField.getText());
+		}
+		catch (Exception e)
+		{
+			numToRun = 4;
+			numberField.setText("4");
+		}
+		output.setText(Creator.createOutputString(wordBuilderList.getItems(), numToRun));
+		return null;
+	}
+
+	private Object doSetOnTopPriorityAction(ListView<Phoneme> wordBuilderList2) {
+		Phoneme p = wordBuilderList2.getSelectionModel().getSelectedItem();
+		p.setAsTopPriority();
+		int index = wordBuilderList2.getSelectionModel().getSelectedIndex();
+		wordBuilderList2.getItems().remove(p);
+		wordBuilderList2.getItems().add(index, p);
+		wordBuilderList2.getSelectionModel().select(index);
+		return null;
+	}
+
+	private Object doCreatePhoneme(ListView<Phoneme> phonemeListView2, final Stage primaryStage) {
+		Stage s = PhonemeCreator.createCreateDialog(primaryStage, phonemeListView2);
+		s.show();
+		return null;
+	}
+
+	private Object doEditPhoneme(ListView<Phoneme> phonemeListView2, final Stage primaryStage) {
+		Phoneme p = phonemeListView2.getSelectionModel().getSelectedItem();
+		Stage s = PhonemeCreator.createEditDialog(primaryStage, phonemeListView2, p);
+		s.show();
+		return null;
+	}
+
 	public static void main(String[] args)
 	{
 		launch(args);

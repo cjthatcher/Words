@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -15,6 +16,44 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 public class Utils {
+	
+	private static List<Phoneme> phonemeList = null;
+	
+	public static List<Phoneme> getPhonemeList() 
+	{
+		if (phonemeList == null)
+		{
+			try {
+				phonemeList = readPhonemeList();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return phonemeList;
+	}
+	
+	public static void removePhoneme(Phoneme p)
+	{
+		phonemeList.remove(p);
+		try {
+			writeOutPhonemeList(phonemeList);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public static void addPhoneme(Phoneme p)
+	{
+		phonemeList.add(p);
+		try {
+			writeOutPhonemeList(phonemeList);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException
 	{
@@ -25,7 +64,7 @@ public class Utils {
 		}
 	}
 	
-	public static void writeOutPhonemeList(List<Phoneme> phonemeList) throws IOException
+	private static void writeOutPhonemeList(List<Phoneme> phonemeList) throws IOException
 	{
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		String json = gson.toJson(phonemeList);
@@ -34,7 +73,7 @@ public class Utils {
 		fw.close();
 	}
 	
-	public static List<Phoneme> readPhonemeList() throws FileNotFoundException
+	private static List<Phoneme> readPhonemeList() throws FileNotFoundException
 	{
 		StringBuilder sb = new StringBuilder();
 		File f = new File("phonemes.json");

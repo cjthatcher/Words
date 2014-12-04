@@ -9,7 +9,14 @@ public class PhonemeCell extends ListCell<Phoneme> {
 	@Override protected void updateItem(Phoneme item, boolean empty) {
 		super.updateItem(item, empty);
 		if (item != null) {
-			setText(item.getName());
+			if (item.isHighestPriority()) 
+			{
+				setText(item.getName() + "*");
+			}
+			else
+			{
+				setText(item.getName());
+			}
 			setTooltip(new Tooltip(item.getTooltipText()));
 		}
 		if (item == null)
